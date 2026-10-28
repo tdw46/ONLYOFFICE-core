@@ -35,6 +35,8 @@
 
 #include "ContText.h"
 
+#include <cmath>
+
 #include "../../resources/ColorTable.h"
 #include "../../resources/SingletonTemplate.h"
 #include "../../resources/utils.h"
@@ -454,9 +456,9 @@ namespace NSDocxRenderer
 
 		UINT lSize = 0;
 		if (m_eVertAlignType == eVertAlignType::vatSubscript || m_eVertAlignType == eVertAlignType::vatSuperscript)
-			lSize = static_cast<int>(1.5 * m_pFontStyle->dFontSize) * 100;
+			lSize = static_cast<unsigned int>(std::lround(150.0 * m_pFontStyle->dFontSize));
 		else if (m_bWriteStyleRaw)
-			lSize = static_cast<int>(m_pFontStyle->dFontSize) * 100;
+			lSize = static_cast<unsigned int>(std::lround(100.0 * m_pFontStyle->dFontSize));
 
 		oWriter.WriteString(L" sz=\"");
 		oWriter.AddUInt(lSize);
@@ -617,7 +619,9 @@ namespace NSDocxRenderer
 			oWriter.WriteBYTE(16); oWriter.WriteBYTE(strike);
 			oWriter.WriteBYTE(15); oWriter.AddSInt(lCalculatedSpacing);
 			oWriter.WriteBYTE(18); oWriter.WriteBYTE(m_bIsUnderlinePresent ? 13 : 12);
-			unsigned int font_size = static_cast<unsigned int>(m_pFontStyle->dFontSize) * 100;
+			// DrawingML stores hundredths of a point. Convert before rounding so
+			// entering PDF text editing does not shrink fractional font sizes.
+			unsigned int font_size = static_cast<unsigned int>(std::lround(m_pFontStyle->dFontSize * 100.0));
 			const unsigned int min_font_size = 100;
 			oWriter.WriteBYTE(17); oWriter.AddInt(std::max(font_size, std::max(font_size, min_font_size)));
 
